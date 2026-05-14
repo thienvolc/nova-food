@@ -1,0 +1,60 @@
+name: techora
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: techora-postgres
+    environment:
+      POSTGRES_USER: techora
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: techora
+    ports:
+      - "5432:5432"
+    volumes:
+      - techora_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: techora-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - techora_redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: techora-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - techora_zookeeper_data:/data
+      - techora_zookeeper_log:/datalog
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: techora-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - techora_kafka_data:/var/lib/kafka/data
+
+volumes:
+  techora_postgres_data:
+  techora_redis_data:
+  techora_zookeeper_data:
+  techora_zookeeper_log:
+  techora_kafka_data:
