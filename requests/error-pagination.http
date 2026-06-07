@@ -1,0 +1,39 @@
+@baseUrl = http://localhost:8080
+@customerToken = paste-customer-token-here
+@ownerToken = paste-owner-token-here
+@driverToken = paste-driver-token-here
+@orderId = paste-order-id-here
+
+### Validation error example
+POST {{baseUrl}}/api/v1/orders
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "menuItemId": "{{orderId}}",
+      "quantity": 0
+    }
+  ]
+}
+
+### Invalid UUID parsing error example
+GET {{baseUrl}}/api/v1/orders/not-a-uuid
+Authorization: Bearer {{customerToken}}
+
+### Customer orders with pagination
+GET {{baseUrl}}/api/v1/orders/my?page=0&size=10
+Authorization: Bearer {{customerToken}}
+
+### Restaurant orders with pagination
+GET {{baseUrl}}/api/v1/orders/restaurants/paste-restaurant-id-here?page=0&size=10
+Authorization: Bearer {{ownerToken}}
+
+### Payment transactions with pagination
+GET {{baseUrl}}/api/v1/orders/{{orderId}}/payments?page=0&size=10
+Authorization: Bearer {{customerToken}}
+
+### Driver deliveries with pagination
+GET {{baseUrl}}/api/v1/deliveries/my?page=0&size=10
+Authorization: Bearer {{driverToken}}

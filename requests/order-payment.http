@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:8080
+@customerToken = paste-customer-token-here
+@menuItemId = paste-menu-item-id-here
+@orderId = paste-order-id-here
+
+### Create order
+POST {{baseUrl}}/api/v1/orders
+Authorization: Bearer {{customerToken}}
+Idempotency-Key: order-flow-demo-001
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "menuItemId": "{{menuItemId}}",
+      "quantity": 2
+    }
+  ]
+}
+
+### Get my orders
+GET {{baseUrl}}/api/v1/orders/my
+Authorization: Bearer {{customerToken}}
+
+### Get order detail
+GET {{baseUrl}}/api/v1/orders/{{orderId}}
+Authorization: Bearer {{customerToken}}
+
+### Pay order with mock success
+POST {{baseUrl}}/api/v1/orders/{{orderId}}/payments/mock
+Authorization: Bearer {{customerToken}}
+Idempotency-Key: payment-flow-demo-001
+Content-Type: application/json
+
+{
+  "approved": true
+}
+
+### Pay order with mock failure
+POST {{baseUrl}}/api/v1/orders/{{orderId}}/payments/mock
+Authorization: Bearer {{customerToken}}
+Idempotency-Key: payment-failure-demo-001
+Content-Type: application/json
+
+{
+  "approved": false
+}
+
+### List payments for order
+GET {{baseUrl}}/api/v1/orders/{{orderId}}/payments
+Authorization: Bearer {{customerToken}}

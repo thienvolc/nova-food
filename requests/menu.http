@@ -1,0 +1,63 @@
+@baseUrl = http://localhost:8080
+@ownerToken = paste-owner-token-here
+@restaurantId = paste-restaurant-id-here
+@menuItemId = paste-menu-item-id-here
+
+### Create menu item
+POST {{baseUrl}}/api/v1/restaurants/{{restaurantId}}/menu-items
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "name": "Margherita Pizza",
+  "description": "Classic tomato and cheese pizza",
+  "price": 120000.00,
+  "available": true,
+  "trackStock": true,
+  "stockQuantity": 20,
+  "lowStockThreshold": 3
+}
+
+### List available menu items
+GET {{baseUrl}}/api/v1/restaurants/{{restaurantId}}/menu-items
+
+### Update menu item
+PUT {{baseUrl}}/api/v1/menu-items/{{menuItemId}}
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "name": "Margherita Pizza Large",
+  "description": "Classic tomato and cheese pizza",
+  "price": 150000.00
+}
+
+### Update menu item availability
+PATCH {{baseUrl}}/api/v1/menu-items/{{menuItemId}}/availability
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "available": true
+}
+
+### Update menu item stock
+PATCH {{baseUrl}}/api/v1/menu-items/{{menuItemId}}/stock
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "trackStock": true,
+  "stockQuantity": 25,
+  "lowStockThreshold": 5
+}
+
+### Add stock adjustment
+POST {{baseUrl}}/api/v1/menu-items/{{menuItemId}}/stock-adjustments
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "quantityDelta": 10,
+  "reason": "Restock"
+}

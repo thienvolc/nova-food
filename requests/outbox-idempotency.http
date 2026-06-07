@@ -1,0 +1,69 @@
+@baseUrl = http://localhost:8080
+@customerToken = paste-customer-token-here
+@adminToken = paste-admin-token-here
+@menuItemId = paste-menu-item-id-here
+@orderId = paste-order-id-here
+@driverId = paste-driver-user-id-here
+@failedOutboxId = paste-failed-outbox-id-here
+
+### Create order with idempotency key
+POST {{baseUrl}}/api/v1/orders
+Authorization: Bearer {{customerToken}}
+Idempotency-Key: order-checkout-demo-001
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "menuItemId": "{{menuItemId}}",
+      "quantity": 2
+    }
+  ]
+}
+
+### Repeat same order request with same key
+POST {{baseUrl}}/api/v1/orders
+Authorization: Bearer {{customerToken}}
+Idempotency-Key: order-checkout-demo-001
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "menuItemId": "{{menuItemId}}",
+      "quantity": 2
+    }
+  ]
+}
+
+### Pay order with idempotency key
+POST {{baseUrl}}/api/v1/orders/{{orderId}}/payments/mock
+Authorization: Bearer {{customerToken}}
+Idempotency-Key: payment-demo-001
+Content-Type: application/json
+
+{
+  "approved": true
+}
+
+### Assign driver with idempotency key
+POST {{baseUrl}}/api/v1/orders/{{orderId}}/deliveries/assign
+Authorization: Bearer {{adminToken}}
+Idempotency-Key: delivery-assign-demo-001
+Content-Type: application/json
+
+{
+  "driverId": "{{driverId}}"
+}
+
+### Outbox summary
+GET {{baseUrl}}/api/v1/admin/outbox/summary
+Authorization: Bearer {{adminToken}}
+
+### Failed outbox records
+GET {{baseUrl}}/api/v1/admin/outbox/failed
+Authorization: Bearer {{adminToken}}
+
+### Replay failed outbox record
+POST {{baseUrl}}/api/v1/admin/outbox/{{failedOutboxId}}/replay
+Authorization: Bearer {{adminToken}}

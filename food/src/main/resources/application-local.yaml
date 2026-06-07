@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:15432/nova_food
+    username: nova_food
+    password: 12345
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: nova-food-${random.uuid}
+      auto-offset-reset: latest
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+security:
+  jwt:
+    secret: "change-this-secret-key-to-at-least-32-characters"
+    expiration-seconds: 3600
+
+app:
+  events:
+    mode: local
+    topic: nova.order.created
+    fallback-on-kafka-error: true
+  outbox:
+    worker-delay-ms: 2000

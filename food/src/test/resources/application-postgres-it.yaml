@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:15432/nova_food?currentSchema=nova_food_it
+    username: nova_food
+    password: 12345
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: nova_food_it
+        hbm2ddl:
+          create_namespaces: true
+
+security:
+  jwt:
+    secret: "change-this-secret-key-to-at-least-32-characters"
+    expiration-seconds: 3600
+
+app:
+  events:
+    mode: local
+    topics:
+      order-created: nova.order.created
+      payment-completed: nova.payment.completed
+      payment-failed: nova.payment.failed
+      order-ready-for-delivery: nova.order.ready-for-delivery
+      delivery-completed: nova.delivery.completed
+    fallback-on-kafka-error: true
+  outbox:
+    worker-delay-ms: 60000
+    retry:
+      max-retries: 3
+      max-backoff-seconds: 1
+      step-backoff-seconds: 1

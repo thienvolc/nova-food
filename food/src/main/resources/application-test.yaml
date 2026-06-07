@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:nova_food_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: nova-food-test
+      auto-offset-reset: latest
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+security:
+  jwt:
+    secret: "change-this-secret-key-to-at-least-32-characters"
+    expiration-seconds: 3600
+
+app:
+  events:
+    mode: local
+    topics:
+      order-created: nova.order.created
+      payment-completed: nova.payment.completed
+      payment-failed: nova.payment.failed
+      order-ready-for-delivery: nova.order.ready-for-delivery
+      delivery-completed: nova.delivery.completed
+    fallback-on-kafka-error: true
+  outbox:
+    worker-delay-ms: 5000
+    retry:
+      max-retries: 3
+      max-backoff-seconds: 1
+      step-backoff-seconds: 1

@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:8080
+@customerToken = paste-customer-token-here
+@ownerToken = paste-owner-token-here
+@adminToken = paste-admin-token-here
+@orderId = paste-order-id-here
+@trackingId = paste-tracking-id-here
+
+### Track order by tracking id
+GET {{baseUrl}}/api/v1/orders/tracking/{{trackingId}}
+Authorization: Bearer {{customerToken}}
+
+### List order status history
+GET {{baseUrl}}/api/v1/orders/{{orderId}}/status-history
+Authorization: Bearer {{customerToken}}
+
+### Customer cancels own order before restaurant confirmation
+PATCH {{baseUrl}}/api/v1/orders/{{orderId}}/cancel
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+  "reason": "Changed my mind"
+}
+
+### Restaurant owner cancels before ready for delivery
+PATCH {{baseUrl}}/api/v1/orders/{{orderId}}/restaurant-cancel
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "reason": "Kitchen unavailable"
+}
+
+### Admin cancels before ready for delivery
+PATCH {{baseUrl}}/api/v1/orders/{{orderId}}/restaurant-cancel
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "reason": "Admin support cancellation"
+}

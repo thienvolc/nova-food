@@ -1,0 +1,61 @@
+@baseUrl = http://localhost:8080
+@adminToken = paste-admin-token-here
+@ownerToken = paste-owner-token-here
+@driverToken = paste-driver-token-here
+@restaurantId = paste-restaurant-id-here
+@orderId = paste-paid-order-id-here
+@driverId = paste-driver-user-id-here
+@deliveryId = paste-delivery-id-here
+
+### Admin creates driver
+POST {{baseUrl}}/api/v1/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "username": "driver1",
+  "password": "Password123!",
+  "role": "DRIVER"
+}
+
+### Owner lists restaurant orders
+GET {{baseUrl}}/api/v1/orders/restaurants/{{restaurantId}}
+Authorization: Bearer {{ownerToken}}
+
+### Owner confirms paid order
+PATCH {{baseUrl}}/api/v1/orders/{{orderId}}/confirm
+Authorization: Bearer {{ownerToken}}
+
+### Owner marks order preparing
+PATCH {{baseUrl}}/api/v1/orders/{{orderId}}/preparing
+Authorization: Bearer {{ownerToken}}
+
+### Owner marks order ready for delivery
+PATCH {{baseUrl}}/api/v1/orders/{{orderId}}/ready-for-delivery
+Authorization: Bearer {{ownerToken}}
+
+### Admin assigns driver
+POST {{baseUrl}}/api/v1/orders/{{orderId}}/deliveries/assign
+Authorization: Bearer {{adminToken}}
+Idempotency-Key: delivery-flow-demo-001
+Content-Type: application/json
+
+{
+  "driverId": "{{driverId}}"
+}
+
+### Driver lists assigned deliveries
+GET {{baseUrl}}/api/v1/deliveries/my
+Authorization: Bearer {{driverToken}}
+
+### Driver starts delivery
+PATCH {{baseUrl}}/api/v1/deliveries/{{deliveryId}}/start
+Authorization: Bearer {{driverToken}}
+
+### Driver completes delivery
+PATCH {{baseUrl}}/api/v1/deliveries/{{deliveryId}}/complete
+Authorization: Bearer {{driverToken}}
+
+### Get delivery by order
+GET {{baseUrl}}/api/v1/orders/{{orderId}}/deliveries
+Authorization: Bearer {{driverToken}}

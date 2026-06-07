@@ -1,0 +1,42 @@
+@baseUrl = http://localhost:8080
+@ownerToken = paste-owner-token-here
+@restaurantId = paste-restaurant-id-here
+
+### Create restaurant
+POST {{baseUrl}}/api/v1/restaurants
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "name": "Nova Pizza",
+  "description": "Fast pizza and pasta",
+  "address": "1 Nova Street",
+  "phone": "0900000000"
+}
+
+### List active restaurants
+GET {{baseUrl}}/api/v1/restaurants
+
+### Get restaurant detail
+GET {{baseUrl}}/api/v1/restaurants/{{restaurantId}}
+
+### Update restaurant
+PUT {{baseUrl}}/api/v1/restaurants/{{restaurantId}}
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "name": "Nova Pizza Updated",
+  "description": "Pizza, pasta, and salad",
+  "address": "1 Nova Street",
+  "phone": "0900000001"
+}
+
+### Disable restaurant
+PATCH {{baseUrl}}/api/v1/restaurants/{{restaurantId}}/status
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "status": "INACTIVE"
+}

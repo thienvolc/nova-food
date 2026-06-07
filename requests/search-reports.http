@@ -1,0 +1,28 @@
+@baseUrl = http://localhost:8080
+@adminToken = paste-admin-token-here
+@ownerToken = paste-owner-token-here
+@restaurantId = paste-restaurant-id-here
+@fromDate = 2026-01-01T00:00:00Z
+@toDate = 2026-12-31T23:59:59Z
+
+### Search active restaurants by keyword
+GET {{baseUrl}}/api/v1/restaurants/search?keyword=pizza&page=0&size=10
+
+### Search menu items by restaurant and price range
+GET {{baseUrl}}/api/v1/menu-items/search?restaurantId={{restaurantId}}&available=true&keyword=pizza&minPrice=50000&maxPrice=200000&page=0&size=10
+
+### Admin revenue report across all restaurants
+GET {{baseUrl}}/api/v1/admin/reports/revenue?fromDate={{fromDate}}&toDate={{toDate}}
+Authorization: Bearer {{adminToken}}
+
+### Admin orders by status
+GET {{baseUrl}}/api/v1/admin/reports/orders-by-status?fromDate={{fromDate}}&toDate={{toDate}}
+Authorization: Bearer {{adminToken}}
+
+### Admin top menu items
+GET {{baseUrl}}/api/v1/admin/reports/top-menu-items?fromDate={{fromDate}}&toDate={{toDate}}&limit=10
+Authorization: Bearer {{adminToken}}
+
+### Owner restaurant revenue report
+GET {{baseUrl}}/api/v1/restaurants/{{restaurantId}}/reports/revenue?fromDate={{fromDate}}&toDate={{toDate}}
+Authorization: Bearer {{ownerToken}}

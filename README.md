@@ -1,217 +1,306 @@
 # ⭐ 100% Vibe Coded ⭐
 
-# Techora
+# nova-food
 
-Techora is a Java/Spring e-commerce backend showcase focused on order lifecycle design, stock reservation, payment orchestration, idempotent APIs, and reliable event publishing.
+`nova-food` is a Java 21 Spring Boot modular monolith for food ordering workflow reliability.
 
-The project is built as a modular monolith so common backend concerns can be demonstrated clearly in one codebase without hiding the workflow behind service-to-service complexity.
+The repo is intentionally narrow. It focuses on backend depth in `order`, `payment`, `delivery`, `inventory`, `outbox`, and `idempotency` rather than broad product surface.
 
-## What This Project Demonstrates
+## Current scope
 
-- JWT-based authentication and role-based authorization
-- Public product catalog with category filtering and keyword search
-- Admin management for categories, products, low-stock review, and order operations
-- Shopping cart flow with stock-aware quantity validation
-- Checkout pipeline with order creation and stock reservation
-- Payment lifecycle with confirm/fail transitions
-- Order status history and actor-aware event tracking
-- Idempotent checkout and payment confirmation/failure APIs
-- Outbox pattern for reliable async event persistence
-- Local-first development setup with PostgreSQL, Redis, and Kafka
+- Auth with JWT
+- Restaurant and menu management
+- Order lifecycle
+- Mock payment flow
+- Delivery assignment and completion
+- Inventory decrement and restore
+- Outbox-backed workflow events
+- Idempotency for order creation, payment, and delivery assignment
+- Admin outbox ops and replay
 
-## Tech Stack
+Removed from active CV scope:
+
+- customer profile
+- driver profile
+- review
+- coupon
+- receipt
+
+## Stack
 
 - Java 21
 - Spring Boot 4
 - Spring Web
-- Spring Security
 - Spring Data JPA
-- Spring Validation
-- Spring Kafka
+- Spring Security + JWT
 - PostgreSQL
-- Redis
-- H2 for tests
-- Lombok
-- JWT (`jjwt`)
-- Docker Compose for local infrastructure
+- Kafka-ready event publishing
+- H2 for fast default tests
+- PostgreSQL verification profile for critical workflow checks
 
-## Repository Layout
+## Local setup
 
-- [`backend/`](./backend): main Spring Boot application
-- [`infrastructure/docker-compose.yaml`](./infrastructure/docker-compose.yaml): local PostgreSQL, Redis, ZooKeeper, and Kafka stack
-
-## Architecture Snapshot
-
-Main modules inside `backend/src/main/java/com/techora/domain`:
-
-- `auth`: register/login and JWT issuance
-- `user`: user model, role handling, and current-user lookup
-- `category`: category CRUD and active-category listing
-- `product`: catalog, slugging, public browse/search, admin CRUD, low-stock queries
-- `cart`: cart ownership, cart-item lifecycle, quantity validation
-- `order`: checkout flow, order status transitions, admin/user order views, event history
-- `payment`: payment creation, confirm/fail handling, payment state policy
-- `inventory`: stock reservation, confirmation, release, and expiration handling
-- `idempotency`: replay-safe checkout and payment actions
-- `outbox`: transactional event recording and async publish workflow
-
-High-level style:
-
-- API layer in `api/rest`
-- Shared response/error concerns in `app/...`
-- Feature modules in `domain/...`
-- Security, config, JWT, scheduling, and runtime wiring in `infrastructure/...`
-
-## Core Features
-
-### Auth and Access Control
-
-- Register and login with JWT token issuance
-- Stateless security with request filtering
-- Public catalog endpoints for browsing
-- Protected cart, order, and payment endpoints
-- Admin-only endpoints for product, category, and order management
-
-### Catalog and Cart
-
-- List active categories
-- Browse active products with optional category and keyword filters
-- View product details by slug
-- Add, update, remove, and clear cart items
-- Enforce active-product and available-stock checks in cart operations
-
-### Checkout and Order Workflow
-
-- Convert cart items into an order with immutable order-item snapshots
-- Reserve stock during checkout before payment confirmation
-- Maintain explicit order status transitions such as `CREATED`, `STOCK_RESERVED`, `PAYMENT_PENDING`, `PAID`, `PAYMENT_FAILED`, and `CANCELLED`
-- Record order events for user, admin, and system-driven transitions
-- Expose order detail, listing, and event history APIs
-
-### Payment and Inventory Reliability
-
-- Create one payment per order with generated provider reference
-- Confirm payment to finalize stock reduction and mark order as paid
-- Fail payment to cancel the order and release reserved inventory
-- Prevent duplicate checkout and duplicate payment confirmation/failure with idempotency keys
-- Persist outbox events for order placement, status change, payment result, cancellation, and stock reduction
-
-## Key API Areas
-
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `GET /api/v1/auth/me`
-- `GET /api/v1/categories`
-- `GET /api/v1/products`
-- `GET /api/v1/products/{slug}`
-- `GET /api/v1/cart`
-- `POST /api/v1/cart/items`
-- `PUT /api/v1/cart/items/{itemId}`
-- `DELETE /api/v1/cart/items/{itemId}`
-- `POST /api/v1/orders/checkout`
-- `GET /api/v1/orders`
-- `GET /api/v1/orders/{orderId}`
-- `GET /api/v1/orders/{orderId}/events`
-- `POST /api/v1/payments`
-- `GET /api/v1/payments/{paymentId}`
-- `POST /api/v1/payments/{paymentId}/confirm`
-- `POST /api/v1/payments/{paymentId}/fail`
-- `POST /api/v1/admin/categories`
-- `POST /api/v1/admin/products`
-- `GET /api/v1/admin/products/low-stock`
-- `GET /api/v1/admin/orders/{orderId}`
-- `GET /api/v1/admin/orders/status-summary`
-- `PUT /api/v1/admin/orders/{orderId}/status`
-
-## Local Run
-
-Infrastructure:
+Start infrastructure:
 
 ```bash
-cd techora/infrastructure
-docker compose up -d
+docker compose -f nova-food/infrastructure/docker-compose.yaml up -d
 ```
 
-Application:
+Important ports:
+
+- App: `8080`
+- PostgreSQL local/demo port: `15432`
+- Kafka: `9092`
+
+For local demos, create an admin account after the app has started once and created tables:
 
 ```bash
-cd techora/backend
+docker exec -i nova-food-postgres psql -U nova_food -d nova_food <<'SQL'
+INSERT INTO users (id, username, password_hash, role, created_at)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    'admin',
+    '$2a$10$vgZrZcz62vxSbMR2Wo2SZeg9mMtdACeIIx1J3gDUPgM0qIsbNPDsa',
+    'ADMIN',
+    CURRENT_TIMESTAMP
+)
+ON CONFLICT (username) DO NOTHING;
+SQL
+```
+
+Windows-friendly helper:
+
+```powershell
+.\nova-food\scripts\seed-local-admin.ps1
+```
+
+The seeded local password is `Password123!`.
+
+Run the app:
+
+```bash
+cd nova-food/food
 ./mvnw spring-boot:run
 ```
 
-Optional profile examples:
+Base URL:
 
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=api
-./mvnw spring-boot:run -Dspring-boot.run.profiles=worker
+```text
+http://localhost:8080
 ```
 
-Notes:
+## Test strategy
 
-- Default configuration uses PostgreSQL on `localhost:5432`, Redis on `localhost:6379`, and Kafka on `localhost:9092`.
-- Tests run with the `test` profile and use H2.
-- `application.yaml` defaults event publishing to local mode, while `api` and `worker` profiles switch event mode to Kafka.
-
-## Demo Flows
-
-### 1. Golden Path Checkout
-
-- register a customer
-- login as admin
-- create category and product
-- browse public catalog
-- add product to cart
-- checkout to create order and reserve stock
-- create payment
-- confirm payment and reduce stock
-
-### 2. Failure and Recovery Path
-
-- create order from cart
-- create payment
-- fail payment
-- cancel order
-- release reserved stock
-
-### 3. Idempotency Path
-
-- call checkout with `Idempotency-Key`
-- replay the same request and receive the same order
-- confirm payment with `Idempotency-Key`
-- replay the same confirmation without causing an invalid duplicate transition
-
-## Verification
-
-From `techora/backend`:
+Fast default suite:
 
 ```bash
+cd nova-food/food
 ./mvnw test
 ```
 
-Representative coverage already present in the repo includes:
+Critical PostgreSQL verification:
 
-- API smoke test for auth, catalog, cart, checkout, and payment
-- security tests for catalog/cart/order/payment access
-- service tests for cart, product, order, payment, inventory reservation, outbox, and idempotency
+```bash
+cd nova-food/food
+./mvnw "-Dpostgres.it=true" "-Dtest=Sprint11PostgresVerificationTests" test
+```
 
-## Tradeoffs
+The PostgreSQL verification profile also uses local port `15432`, so the same Docker Compose database is used for both app demo and focused persistence checks.
 
-- Chosen architecture: modular monolith over microservices
-  - easier to explain and run locally
-  - still strong enough to demonstrate realistic backend workflows
-- Payment integration is mock-oriented
-  - enough to model lifecycle, state transitions, and idempotency
-  - avoids premature integration with a real gateway
-- Event-driven reliability uses outbox inside one service boundary
-  - highlights consistency and async delivery concerns
-  - keeps operational scope manageable for a portfolio project
+What the PostgreSQL verification covers:
 
-## Out of Scope
+- UUID mapping
+- enum persistence
+- timestamp persistence
+- unique constraints for idempotency keys
+- order creation idempotency
+- payment idempotency
+- delivery assignment idempotency
+- outbox replay flow on PostgreSQL
 
-- Frontend storefront or admin dashboard
-- Real payment gateway integration
-- Shipment, coupon, review, or recommendation systems
-- Full warehouse or multi-location inventory modeling
-- Production-grade observability and deployment automation
+## Core workflow demo
 
-The repo is optimized for backend engineering discussion and portfolio presentation rather than for being a full commercial e-commerce product.
+Use the request examples in `nova-food/requests`.
+
+Recommended file order:
+
+- `auth.http`
+- `restaurant.http`
+- `menu.http`
+- `order-payment.http`
+- `delivery.http`
+- `tracking-cancellation.http`
+- `search-reports.http`
+- `outbox-idempotency.http`
+
+Suggested flow:
+
+1. Register/login a restaurant owner and a customer.
+2. Admin creates a driver account.
+3. Owner creates a restaurant.
+4. Owner creates a menu item.
+5. Customer creates an order with optional `Idempotency-Key`.
+6. Customer pays with mock payment with optional `Idempotency-Key`.
+7. Owner moves the order through `CONFIRMED`, `PREPARING`, and `READY_FOR_DELIVERY`.
+8. Admin assigns a driver with optional `Idempotency-Key`.
+9. Driver starts and completes delivery.
+10. Admin checks outbox summary, failed events, and replay endpoint if needed.
+
+Automated smoke demo helper:
+
+```powershell
+.\nova-food\scripts\run-smoke-demo.ps1
+```
+
+The script exercises the same CV flow and prints a JSON summary with:
+
+- created restaurant, menu item, order, and delivery ids
+- idempotency results for order, payment, and delivery assignment
+- final order status and status-history count
+- report totals
+- outbox pending count before and after worker drain
+
+## CV definition of done
+
+- Scope stays fixed on workflow-heavy backend modules.
+- Demo requests match the codebase and avoid removed domains.
+- Fast H2 tests and focused PostgreSQL verification both pass.
+- README explains the design tradeoffs and why the repo stops here.
+- Interviewer can see one coherent backend story: synchronous workflow consistency plus async reliability.
+
+## Evidence snapshot
+
+- `3` idempotent write paths: order creation, mock payment, delivery assignment
+- `3` outbox ops endpoints: summary, failed list, replay
+- `2` verification modes: fast H2 suite and focused PostgreSQL workflow verification
+- `14` automated test classes, including workflow, idempotency, outbox, pagination, and PostgreSQL coverage
+- request demos cleaned to current CV scope only
+
+## Key test suites
+
+- `Sprint1CoreFlowTests`
+- `Sprint2LifecycleDeliveryTests`
+- `Sprint4TrackingCancellationTests`
+- `Sprint5InventoryDriverAvailabilityTests`
+- `Sprint9WorkflowHardeningTests`
+- `Sprint9OutboxWorkflowTests`
+- `Sprint10IdempotencyTests`
+- `Sprint11OrderIdempotencyTests`
+- `Sprint11OutboxOpsTests`
+- `Sprint11PostgresVerificationTests`
+
+## Architecture decisions
+
+### Why modular monolith
+
+- The repo optimizes for workflow consistency, not deployment topology.
+- `order`, `payment`, `delivery`, and `inventory` still need strong synchronous coordination.
+- A modular monolith keeps transactional boundaries explicit without premature distributed complexity.
+
+### Why outbox instead of direct async business mutation
+
+- Workflow state changes stay synchronous in the primary transaction.
+- Asynchronous publication is isolated behind outbox records.
+- Failed publication can be retried or replayed without mutating business state twice.
+
+### Why local lock plus database constraint for idempotency
+
+- Local lock reduces same-instance duplicate processing.
+- Database unique constraints remain the final safety boundary.
+- Recovery paths convert race-condition inserts into safe repeated outcomes.
+
+### Why the repo stops here for CV
+
+- The goal is to demonstrate backend engineering judgment, not feature breadth.
+- This repo already shows:
+  - transaction boundaries
+  - lifecycle/state transition control
+  - async reliability via outbox
+  - idempotency on risky writes
+  - PostgreSQL persistence verification
+- The request/demo set is intentionally kept narrow so the repo remains easy to review and demo in an interview.
+- Adding more product domains would dilute the signal.
+
+## API summary
+
+### Auth
+
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+
+### Restaurant
+
+- `POST /api/v1/restaurants`
+- `GET /api/v1/restaurants`
+- `GET /api/v1/restaurants/search`
+- `GET /api/v1/restaurants/{restaurantId}`
+- `PUT /api/v1/restaurants/{restaurantId}`
+- `PATCH /api/v1/restaurants/{restaurantId}/status`
+
+### Menu
+
+- `POST /api/v1/restaurants/{restaurantId}/menu-items`
+- `GET /api/v1/restaurants/{restaurantId}/menu-items`
+- `GET /api/v1/menu-items/search`
+- `PUT /api/v1/menu-items/{menuItemId}`
+- `PATCH /api/v1/menu-items/{menuItemId}/availability`
+- `PATCH /api/v1/menu-items/{menuItemId}/stock`
+- `POST /api/v1/menu-items/{menuItemId}/stock-adjustments`
+
+### Order
+
+- `POST /api/v1/orders`
+- `GET /api/v1/orders/{orderId}`
+- `GET /api/v1/orders/tracking/{trackingId}`
+- `GET /api/v1/orders/my?page=0&size=20`
+- `GET /api/v1/orders/restaurants/{restaurantId}?page=0&size=20`
+- `GET /api/v1/orders/{orderId}/status-history`
+- `PATCH /api/v1/orders/{orderId}/confirm`
+- `PATCH /api/v1/orders/{orderId}/preparing`
+- `PATCH /api/v1/orders/{orderId}/ready-for-delivery`
+- `PATCH /api/v1/orders/{orderId}/cancel`
+- `PATCH /api/v1/orders/{orderId}/restaurant-cancel`
+
+`POST /api/v1/orders` accepts optional `Idempotency-Key`.
+
+### Payment
+
+- `POST /api/v1/orders/{orderId}/payments/mock`
+- `GET /api/v1/orders/{orderId}/payments?page=0&size=20`
+
+`POST /api/v1/orders/{orderId}/payments/mock` accepts optional `Idempotency-Key`.
+
+### User admin
+
+- `POST /api/v1/users`
+
+### Delivery
+
+- `POST /api/v1/orders/{orderId}/deliveries/assign`
+- `GET /api/v1/deliveries/my?page=0&size=20`
+- `PATCH /api/v1/deliveries/{deliveryId}/start`
+- `PATCH /api/v1/deliveries/{deliveryId}/complete`
+- `GET /api/v1/orders/{orderId}/deliveries`
+
+`POST /api/v1/orders/{orderId}/deliveries/assign` accepts optional `Idempotency-Key`.
+
+### Reports
+
+- `GET /api/v1/admin/reports/revenue`
+- `GET /api/v1/admin/reports/orders-by-status`
+- `GET /api/v1/admin/reports/top-menu-items`
+- `GET /api/v1/restaurants/{restaurantId}/reports/revenue`
+- `GET /api/v1/restaurants/{restaurantId}/reports/orders-by-status`
+- `GET /api/v1/restaurants/{restaurantId}/reports/top-menu-items`
+
+### Outbox ops
+
+- `GET /api/v1/admin/outbox/summary`
+- `GET /api/v1/admin/outbox/failed`
+- `POST /api/v1/admin/outbox/{outboxId}/replay`
+
+## Notes
+
+- Default tests stay on H2 for fast feedback.
+- PostgreSQL verification is intentionally separated so the repo keeps a fast inner loop and still proves real-database correctness.
+- Kafka remains optional for local development because outbox and publisher support `local`, `kafka`, and `hybrid` modes.

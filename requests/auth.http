@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:8080
+
+### Register restaurant owner
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "owner1",
+  "password": "Password123!",
+  "role": "RESTAURANT_OWNER"
+}
+
+### Login restaurant owner
+# @name ownerLogin
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "owner1",
+  "password": "Password123!"
+}
+
+### Register customer
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "customer1",
+  "password": "Password123!",
+  "role": "CUSTOMER"
+}
+
+### Login customer
+# @name customerLogin
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "customer1",
+  "password": "Password123!"
+}

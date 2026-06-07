@@ -1,42 +1,33 @@
-name: techora
+name: nova-food
 
 services:
   postgres:
     image: postgres:13
-    container_name: techora-postgres
+    container_name: nova-food-postgres
     environment:
-      POSTGRES_USER: techora
+      POSTGRES_USER: nova_food
       POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: techora
+      POSTGRES_DB: nova_food
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
-      - techora_postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7-alpine
-    container_name: techora-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - techora_redis_data:/data
-    command: ["redis-server", "--appendonly", "yes"]
+      - nova_food_postgres_data:/var/lib/postgresql/data
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
-    container_name: techora-zookeeper
+    container_name: nova-food-zookeeper
     ports:
       - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     volumes:
-      - techora_zookeeper_data:/data
-      - techora_zookeeper_log:/datalog
+      - nova_food_zookeeper_data:/data
+      - nova_food_zookeeper_log:/datalog
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
-    container_name: techora-kafka
+    container_name: nova-food-kafka
     depends_on:
       - zookeeper
     ports:
@@ -50,11 +41,10 @@ services:
 
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
-      - techora_kafka_data:/var/lib/kafka/data
+      - nova_food_kafka_data:/var/lib/kafka/data
 
 volumes:
-  techora_postgres_data:
-  techora_redis_data:
-  techora_zookeeper_data:
-  techora_zookeeper_log:
-  techora_kafka_data:
+  nova_food_postgres_data:
+  nova_food_zookeeper_data:
+  nova_food_zookeeper_log:
+  nova_food_kafka_data:
